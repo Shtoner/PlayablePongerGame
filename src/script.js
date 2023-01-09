@@ -1,18 +1,19 @@
 
 import './style.css'
+import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-import { Color } from 'three'
-
-
-
+import { Color, EqualStencilFunc, WebGLRenderer } from 'three'
 
 const canvas = document.querySelector('canvas')
 
+
+
+
+
+
 const gui = new dat.GUI()
-
-
 const scene = new THREE.Scene()
 
 const sizes = {
@@ -40,26 +41,29 @@ scene.add(directionalLight)
 
 
 const renderer = new THREE.WebGLRenderer({
-    canvas:canvas,
-    alpha: true
-})
-renderer.setSize(window.innerWidth, window.innerHeight)
+    canvas: canvas,
+    alpha:true,
+});
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+console.log(renderer)
 
-  const controls = new OrbitControls(camera, renderer.domElement);
-// console.log(renderer)
+const controls = new OrbitControls(camera, renderer.domElement);
 
-const standardMat = new THREE.MeshNormalMaterial()
+const standardMat = new THREE.MeshNormalMaterial('#f0f00')
 standardMat.side = THREE.DoubleSide
+
 
 const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(5,35,15),
     standardMat
 )
-
+// sphere.position.x = 
 sphere.scale.set(.04,.04,.04)
-const sphereBox = new THREE.Box3()
 
+const sphereBox = new THREE.Box3()
 sphere.geometry.computeBoundingBox()
+
 
 const planeL = new THREE.Mesh(
     new THREE.PlaneGeometry(1,1),
@@ -67,9 +71,9 @@ const planeL = new THREE.Mesh(
     )
 planeL.rotation.y = Math.PI /2
 planeL.position.x = -2
-planeL.geometry.computeBoundingBox()
-const planeLBox = new THREE.Box3().setFromObject(planeL)
 
+const planeLBox = new THREE.Box3()
+planeL.geometry.computeBoundingBox()
 
 const planeR = new THREE.Mesh(
     new THREE.PlaneGeometry(1,1),
@@ -77,35 +81,33 @@ const planeR = new THREE.Mesh(
     )
 planeR.rotation.y = -Math.PI /2
 planeR.position.x = 2
-planeR.geometry.computeBoundingBox()
 const planeRBox = new THREE.Box3()
+planeR.geometry.computeBoundingBox()
 
+const planeD = new THREE.Mesh(
+    new THREE.PlaneGeometry(8,8),
+    standardMat
+    )
+planeD.rotation.x =  Math.PI /2
+planeD.position.y = -3.01
 
+const planeDBox = new THREE.Box3()
+planeD.geometry.computeBoundingBox()
 
 
 const planeU = new THREE.Mesh(
-    new THREE.PlaneGeometry(10,10),
-    standardMat
-    )
-planeU.rotation.x = -Math.PI /2
-planeU.position.y = 3
-planeU.geometry.computeBoundingBox()
+        new THREE.PlaneGeometry(10,10),
+        standardMat
+        )
+planeU.rotation.x =  Math.PI /2
+planeU.position.y = 3.01
+
 const planeUBox = new THREE.Box3()
+planeU.geometry.computeBoundingBox()
 
 
+scene.add(planeL,planeR,planeD,planeU,sphere)
 
-
-const planeD = new THREE.Mesh(
-    new THREE.PlaneGeometry(10,10),
-    standardMat
-    )
-planeD.rotation.x = -Math.PI /2
-planeD.position.y = -3
-planeD.geometry.computeBoundingBox()
-const planeDBox = new THREE.Box3()
-
-// console.log(sphereBox)
-scene.add(planeR,planeL,planeU,planeD,sphere)
 
 // sphere.position.x = 4;
 // sphere.position.y = 5;
@@ -113,62 +115,40 @@ scene.add(planeR,planeL,planeU,planeD,sphere)
 // sphere.metalness = 1
 // sphere.shininess=2
 
-let dx = Math.floor(Math.random() * 4) + 3
-let dy = Math.floor(Math.random() * 4) + 3
-let dxd = Math.floor(Math.random() * 2)
-let dyd = Math.floor(Math.random() * 2)
+//gameplay
+// let dx = (Math.random()*3) +4
+let dx = Math.floor(Math.random() * 4) + 3;
+let dy = Math.floor(Math.random() * 4) + 3;
+let dxd = Math.floor(Math.random() * 2);
+let dyd = Math.floor(Math.random() * 2);
 
-function runGame(){
-    // requestAnimationFrame(runGame)
+// document.onkeydown = (e) => {
+//     if(e.keyCode === 38 && ! planeRBox.intersectsBox(planeUBox)){
+//         //up
+//         planeR.position.y +=.5
+//     } else if(e.keyCode === 40  && ! planeRBox.intersectsBox(planeDBox)){
+//         //down
+//         planeR.position.y -=.5
+//     } else if (e.keyCode === 87  && ! planeLBox.intersectsBox(planeUBox)){
+//         planeL.position.y +=.5
+//     }else if (e.keyCode === 83 && ! planeLBox.intersectsBox(planeDBox) ){
+//         planeL.position.y -=.5
+//     }
+// }
 
-    window.addEventListener('keydown', e =>  
-    {
-        if(e.key == 'w' && ! planeLBox.intersectsBox(planeUBox) ){
-            planeL.position.y +=1
-            console.log('pressedW')
-        }else if(e.key == 's' && ! planeLBox.intersectsBox(planeDBox)){
-            planeL.position.y -= .5
-        }
-        if(e.key == 'ArrowUp'  && ! planeRBox.intersectsBox(planeUBox)){
-            planeR.position.y +=1
-            console.log('pressedW')
-        }else if(e.key == 'ArrowDown' && ! planeRBox.intersectsBox(planeDBox)){
-            planeR.position.y -= .5
-        }
+sphere.updateMatrixWorld()
+planeL.updateMatrixWorld()
+planeR.updateMatrixWorld()
+planeD.updateMatrixWorld()
+planeU.updateMatrixWorld()
+// let bounding1 = clone(sphere.geometry.boundingBox)
+// bounding1.applyMatrix4(sphere.matrixWorld)
+// let bounding2 = clone(planeR.geometry.boundingBox)
+// bounding2.applyMatrix4(planeR.matrixWorld)
+    // dxd = -dxd 
+    
 
-
-    })
-    function moveBall(){
-
-         requestAnimationFrame(moveBall)
-
-
-        sphereBox.copy(sphere.geometry.boundingBox).applyMatrix4(sphere.matrixWorld)
-        planeLBox.copy(planeL.geometry.boundingBox).applyMatrix4(planeL.matrixWorld)
-        planeRBox.copy(planeR.geometry.boundingBox).applyMatrix4(planeR.matrixWorld)
-        planeUBox.copy(planeU.geometry.boundingBox).applyMatrix4(planeU.matrixWorld)
-        planeDBox.copy(planeD.geometry.boundingBox).applyMatrix4(planeD.matrixWorld)
-        // console.log(sphere.position.x)
-        if(sphereBox.intersectsBox(planeLBox)){
-        dx = -dx
-        }
-        if(sphereBox.intersectsBox(planeRBox)){
-        dx = -dx
-        }
-        sphere.position.x +=dx/200
-        if(sphereBox.intersectsBox(planeUBox)){
-        dy = -dy
-        }
-        if(sphereBox.intersectsBox(planeDBox)){
-        dy = -dy
-        }
-        sphere.position.x +=dx/200
-        sphere.position.y +=dy/200
-    }
-}
-runGame()
-moveBall()
-
+//size er up
 window.addEventListener('resize', () =>
 {
     // Update sizes
@@ -188,19 +168,70 @@ const clock=new THREE.Clock()
 let rightX = .08 
 let oldElapsedTime = 0
 
+console.log(planeL.position.y)
+
+function runGame(){
+	requestAnimationFrame( runGame );
+    
+    sphere.updateMatrixWorld()
+    planeL.updateMatrixWorld()
+    planeR.updateMatrixWorld()
+    planeD.updateMatrixWorld()
+    planeU.updateMatrixWorld()
+
+    document.onkeydown = (e) => {
+        if(e.keyCode === 38 && ! planeRBox.intersectsBox(planeUBox)){
+            //up
+            planeR.position.y +=.5
+        } else if(e.keyCode === 40  && ! planeRBox.intersectsBox(planeDBox)){
+            //down
+            planeR.position.y -=.5
+        } else if (e.keyCode === 87  && ! planeLBox.intersectsBox(planeUBox)){
+            planeL.position.y +=.5
+        }else if (e.keyCode === 83 && ! planeLBox.intersectsBox(planeDBox) ){
+            planeL.position.y -=.5
+        }
+    }
+
+    sphereBox.copy( sphere.geometry.boundingBox ).applyMatrix4( sphere.matrixWorld );
+    planeLBox.copy( planeL.geometry.boundingBox ).applyMatrix4( planeL.matrixWorld );
+    planeRBox.copy( planeR.geometry.boundingBox ).applyMatrix4( planeR.matrixWorld );
+    planeDBox.copy( planeD.geometry.boundingBox ).applyMatrix4( planeD.matrixWorld );
+    planeUBox.copy( planeU.geometry.boundingBox ).applyMatrix4( planeU.matrixWorld );
+
+    if(sphereBox.intersectsBox(planeLBox)){
+        dx = sphere.position.x +1
+        dy = -dy * (Math.random() - .5) *10
+    }
+    if(sphereBox.intersectsBox(planeRBox)){
+        dx = sphere.position.x -1
+        dy = -dy * (Math.random() - .5) *10
+    }
+
+    if(sphereBox.intersectsBox(planeUBox)){
+        dy = -sphere.position.y 
+    }
+    if(sphereBox.intersectsBox(planeDBox)){
+        dy = -sphere.position.y 
+
+    }
+sphere.position.x-=    dx *.001
+sphere.position.y+=    dy *.001
+// console.log(sphere.position.x)
+}
+
+window.addEventListener("keydown", runGame)
 
 function animate() {
 
 	requestAnimationFrame( animate );
 
-    let elapsedTime= clock.getElapsedTime()
-    let deltaTime = elapsedTime - oldElapsedTime
+
+    const elapsedTime= clock.getElapsedTime()
+    const deltaTime = elapsedTime - oldElapsedTime
     oldElapsedTime = elapsedTime
 
-    // sphere.updateProjectionMatrix()
 
-
-    
 
     
     // sphere.position.x=  -(elapsedTime - rightX)
@@ -210,5 +241,5 @@ function animate() {
 	renderer.render( scene, camera );
 
 }
-animate()
+    animate()
 
